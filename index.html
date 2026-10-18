@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Jeu Snake Simple</title>
+    <style>
+        body {
+            background-color: #222;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        h1 { margin-bottom: 10px; }
+        #score { font-size: 24px; margin-bottom: 20px; }
+        canvas {
+            border: 4px solid #fff;
+            background-color: #000;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Jeu du Snake</h1>
+    <div id="score">Score : 0</div>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const scoreElement = document.getElementById("score");
+
+        const gridSize = 20;
+        const tileCount = canvas.width / gridSize;
+
+        let snake = [{ x: 10, y: 10 }];
+        let food = { x: 5, y: 5 };
+        let dx = 1;
+        let dy = 0;
+        let score = 0;
+        let gameInterval;
+
+        function drawGame() {
+            // Déplacer le serpent
+            const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+            
+            // Gestion des collisions avec les murs (téléportation de l'autre côté)
+            if (head.x < 0) head.x = tileCount - 1;
+            if (head.x >= tileCount) head.x = 0;
+            if (head.y < 0) head.y = tileCount - 1;
+            if (head.y >= tileCount) head.y = 0;
+
+            // Vérifier si le serpent se mord lui-même
+            for (let i = 0; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    resetGame();
+                    return;
+                }
+            }
+
+            snake.unshift(head);
+
+            // Vérifier si le serpent mange la nourriture
+            if (head.x === food.x && head.y === food.y) {
+                score++;
+                scoreElement.innerText = "Score : " + score;
+                generateFood();
+            } else {
+                snake.pop();
+            }
+
+            // Dessiner l'écran
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Dessiner le serpent
+            ctx.fillStyle = "#00FF00";
+            for (let i = 0; i < snake.length; i++) {
+                ctx.fillRect(snake[i].x * gridSize, snake[i].y * gridSize, gridSize - 2, gridSize - 2);
+            }
+
+            // Dessiner la nourriture
+            ctx.fillStyle = "#FF0000";
+            ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
+        }
+
+        function generateFood() {
+            food.x = Math.floor(Math.random() * tileCount);
+            food.y = Math.floor(Math.random() * tileCount);
+        }
+
+        function changeDirection(event) {
+            const keyPressed = event.keyCode;
+            const LEFT = 37, UP = 38, RIGHT = 39, DOWN = 40;
+
+            if (keyPressed === LEFT && dx === 0) { dx = -1; dy = 0; }
+            if (keyPressed === UP && dy === 0) { dx = 0; dy = -1; }
+            if (keyPressed === RIGHT && dx === 0) { dx = 1; dy = 0; }
+            if (keyPressed === DOWN && dy === 0) { dx = 0; dy = 1; }
+        }
+
+        function resetGame() {
+            alert("Game Over ! Votre score final est de : " + score);
+            snake = [{ x: 10, y: 10 }];
+            dx = 1;
+            dy = 0;
+            score = 0;
+            scoreElement.innerText = "Score : " + score;
+            generateFood();
+        }
+
+        document.addEventListener("keydown", changeDirection);
+        gameInterval = setInterval(drawGame, 100);
+    </script>
+</body>
+</html>
